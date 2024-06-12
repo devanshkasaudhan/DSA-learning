@@ -1,0 +1,51 @@
+name: Flask CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'  # Specify Python 3.12
+
+    - name: Install dependencies
+      run: |
+        python -m venv venv
+        . venv/bin/activate
+        pip install -r requirements.txt
+
+    - name: Set up the database
+      run: |
+        . venv/bin/activate
+        python -c "from your_flask_app import db; db.create_all()"
+
+    - name: Run tests
+      run: |
+        . venv/bin/activate
+        pytest
+
+    - name: Lint code
+      run: |
+        . venv/bin/activate
+        pip install flake8
+        flake8 your_flask_app
+
+    - name: Upload coverage report
+      if: success()
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage-report
+        path: coverage_html_report
